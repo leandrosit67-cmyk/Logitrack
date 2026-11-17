@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiTrack - Sistem Pencatatan Data Pengangkutan & Logistik</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar Utama -->
+    <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2.5 rounded-xl shadow-inner">
+                    <!-- Icon Truk SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight">LogiTrack ID</h1>
+                    <p class="text-xs text-slate-400">Sistem Pencatatan Data Pengangkutan & Database Rute</p>
+                </div>
+            </div>
+
+            <!-- Aksi Global di Header -->
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="openResetModal()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Reset Contoh Data
+                </button>
+                <button onclick="downloadSourceHTML()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Unduh Kode (index.html)
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigasi Tab Utama -->
+        <div class="bg-slate-800/80 border-t border-slate-700/80">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-2 sm:space-x-4 overflow-x-auto">
+                <button id="tab-btn-trips" onclick="switchTab('trips')" class="tab-btn py-3.5 px-4 text-sm font-semibold border-b-2 border-blue-500 text-white whitespace-nowrap flex items-center gap-2 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    1. Input & Data Pengangkutan
+                    <span id="badge-trips-count" class="ml-1 bg-blue-600/30 text-blue-200 text-xs px-2 py-0.5 rounded-full">0</span>
+                </button>
+                <button id="tab-btn-customers" onclick="switchTab('customers')" class="tab-btn py-3.5 px-4 text-sm font-medium border-b-2 border-transparent text-slate-300 hover:text-white whitespace-nowrap flex items-center gap-2 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                    </svg>
+                    2. Database Customer & Rute
+                    <span id="badge-customers-count" class="ml-1 bg-slate-700 text-slate-300 text-xs px-2 py-0.5 rounded-full">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Konten Utama -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- ========================================================= -->
+        <!-- TAB 1: INPUT & DATA PENGANGKUTAN (TRANSAKSI UTAMA)        -->
+        <!-- ========================================================= -->
+        <section id="section-trips" class="space-y-6">
+
+            <!-- KPI Cards Ringkasan -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Ritase / Angkutan</p>
+                        <p id="kpi-total-trips" class="text-2xl font-bold text-slate-900 mt-1">0 Rit</p>
+                        <p class="text-xs text-slate-400 mt-1">Semua data tercatat</p>
+                    </div>
+                    <div class="bg-blue-50 text-blue-600 p-3 rounded-xl">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Harga Angkut</p>
+                        <p id="kpi-total-revenue" class="text-2xl font-bold text-emerald-700 mt-1">Rp 0</p>
+                        <p class="text-xs text-slate-400 mt-1">Akumulasi tagihan angkut</p>
+                    </div>
+                    <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Uang Jalan</p>
+                        <p id="kpi-total-allowance" class="text-2xl font-bold text-slate-900 mt-1">Rp 0</p>
+                        <p class="text-xs text-slate-400 mt-1">Biaya operasional sopir</p>
+                    </div>
+                    <div class="bg-indigo-50 text-indigo-600 p-3 rounded-xl">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Belum Dibuat INV</p>
+                        <p id="kpi-pending-inv" class="text-2xl font-bold text-rose-600 mt-1">0 Rit</p>
+                        <p class="text-xs text-slate-400 mt-1">Perlu segera ditagihkan</p>
+                    </div>
+                    <div class="bg-rose-50 text-rose-600 p-3 rounded-xl">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Pencatatan Pengangkutan -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div>
+                        <h2 id="trip-form-title" class="text-base font-bold text-slate-900">Catat Pengangkutan Baru</h2>
+                        <p class="text-xs text-slate-500">Pilih Tempat Angkut / Customer untuk menarik tarif & rute otomatis dari database.</p>
+                    </div>
+                    <span id="trip-edit-badge" class="hidden inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                        Mode Edit Data
+                    </span>
+                </div>
+
+                <form id="trip-form" onsubmit="handleTripSubmit(event)" class="p-6 space-y-5">
+                    <input type="hidden" id="trip-id">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Tanggal Angkut -->
+                        <div>
+                            <label for="trip-date" class="block text-xs font-semibold text-slate-700 mb-1.5">Tanggal Angkut <span class="text-rose-500">*</span></label>
+                            <input type="date" id="trip-date" required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        </div>
+
+                        <!-- No. Mobil -->
+                        <div>
+                            <label for="trip-plate" class="block text-xs font-semibold text-slate-700 mb-1.5">No. Mobil / Plat Nomor <span class="text-rose-500">*</span></label>
+                            <input type="text" id="trip-plate" placeholder="Contoh: B 9123 XYZ" required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Nama Sopir -->
+                        <div>
+                            <label for="trip-driver" class="block text-xs font-semibold text-slate-700 mb-1.5">Nama Sopir <span class="text-rose-500">*</span></label>
+                            <input type="text" id="trip-driver" placeholder="Nama lengkap sopir" required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Tempat Angkut / Customer (Dropdown Dinamis) -->
+                        <div>
+                            <label for="trip-customer-select" class="block text-xs font-semibold text-slate-700 mb-1.5">Tempat Angkut / Customer <span class="text-rose-500">*</span></label>
+                            <select id="trip-customer-select" onchange="updateTripCustomerPreview()" required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                <option value="">-- Pilih Tempat Angkut / Customer --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Preview Otomatis Data Master Rute & Tarif -->
+                    <div id="trip-master-preview" class="hidden bg-blue-50/80 border border-blue-200 rounded-xl p-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span class="text-xs font-bold text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Informasi Otomatis dari Database Rute
+                            </span>
+                            <span id="preview-schedule" class="text-xs text-blue-700 font-medium"></span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                            <div class="bg-white/80 rounded-lg p-2.5 border border-blue-100">
+                                <span class="block text-[11px] text-slate-500">Area Tujuan</span>
+                                <span id="preview-area" class="font-semibold text-slate-800">-</span>
+                            </div>
+                            <div class="bg-white/80 rounded-lg p-2.5 border border-blue-100">
+                                <span class="block text-[11px] text-slate-500">Jarak Tempuh</span>
+                                <span id="preview-distance" class="font-semibold text-slate-800">-</span>
+                            </div>
+                            <div class="bg-white/80 rounded-lg p-2.5 border border-blue-100">
+                                <span class="block text-[11px] text-slate-500">Harga Angkut</span>
+                                <span id="preview-price" class="font-bold text-emerald-700">Rp 0</span>
+                            </div>
+                            <div class="bg-white/80 rounded-lg p-2.5 border border-blue-100">
+                                <span class="block text-[11px] text-slate-500">Uang Jalan</span>
+                                <span id="preview-allowance" class="font-bold text-blue-700">Rp 0</span>
+                            </div>
+                        </div>
+                        <p id="preview-address" class="text-xs text-slate-600 mt-2"></p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- No. Surat Jalan -->
+                        <div>
+                            <label for="trip-sj-number" class="block text-xs font-semibold text-slate-700 mb-1.5">No. Surat Jalan <span class="text-rose-500">*</span></label>
+                            <input type="text" id="trip-sj-number" placeholder="Contoh: SJ-2026-001" required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <!-- Status Surat Jalan -->
+                        <div>
+                            <label for="trip-sj-status" class="block text-xs font-semibold text-slate-700 mb-1.5">Status Surat Jalan</label>
+                            <select id="trip-sj-status" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                <option value="Belum Kembali">Belum Kembali</option>
+                                <option value="Kembali / Lengkap">Kembali / Lengkap</option>
+                                <option value="Revisi / Pending">Revisi / Pending</option>
+                            </select>
+                        </div>
+
+                        <!-- Status PO -->
+                        <div>
+                            <label for="trip-po-status" class="block text-xs font-semibold text-slate-700 mb-1.5">Status PO</label>
+                            <select id="trip-po-status" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                <option value="Belum Ada PO">Belum Ada PO</option>
+                                <option value="Sudah Ada PO">Sudah Ada PO</option>
+                            </select>
+                        </div>
+
+                        <!-- Status Invoice / INV -->
+                        <div>
+                            <label for="trip-inv-status" class="block text-xs font-semibold text-slate-700 mb-1.5">Status Invoice (INV)</label>
+                            <select id="trip-inv-status" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                                <option value="Belum Dibuat INV">Belum Dibuat INV</option>
+                                <option value="Sudah Dibuat INV">Sudah Dibuat INV</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-slate-100">
+                        <button type="button" id="trip-cancel-btn" onclick="resetTripForm()" class="hidden px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+                            Batal Edit
+                        </button>
+                        <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span id="trip-submit-text">Simpan Data Pengangkutan</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabel Riwayat Pengangkutan -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="p-5 border-b border-slate-200 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900">Riwayat Pencatatan Pengangkutan</h3>
+                            <p class="text-xs text-slate-500">Klik badge status pada tabel untuk mengubah status dengan cepat (1-klik).</p>
+                        </div>
+                        <button onclick="exportTripsCSV()" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Export ke CSV / Excel
+                        </button>
+                    </div>
+
+                    <!-- Filter & Pencarian -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div class="relative">
+                            <input type="text" id="filter-trip-search" oninput="renderTripsTable()" placeholder="Cari plat mobil, sopir, customer, no SJ..." class="w-full rounded-xl border border-slate-300 pl-9 pr-3.5 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+
+                        <select id="filter-trip-sj" onchange="renderTripsTable()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Semua Status Surat Jalan</option>
+                            <option value="Belum Kembali">SJ: Belum Kembali</option>
+                            <option value="Kembali / Lengkap">SJ: Kembali / Lengkap</option>
+                            <option value="Revisi / Pending">SJ: Revisi / Pending</option>
+                        </select>
+
+                        <select id="filter-trip-po" onchange="renderTripsTable()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Semua Status PO</option>
+                            <option value="Belum Ada PO">PO: Belum Ada PO</option>
+                            <option value="Sudah Ada PO">PO: Sudah Ada PO</option>
+                        </select>
+
+                        <select id="filter-trip-inv" onchange="renderTripsTable()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Semua Status INV</option>
+                            <option value="Belum Dibuat INV">INV: Belum Dibuat INV</option>
+                            <option value="Sudah Dibuat INV">INV: Sudah Dibuat INV</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tabel Responsif -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                <th class="py-3.5 px-4">Tgl & No. SJ</th>
+                                <th class="py-3.5 px-4">Armada & Sopir</th>
+                                <th class="py-3.5 px-4">Tempat Angkut / Customer</th>
+                                <th class="py-3.5 px-4 text-right">Harga & Uang Jalan</th>
+                                <th class="py-3.5 px-4 text-center">Status SJ</th>
+                                <th class="py-3.5 px-4 text-center">Status PO</th>
+                                <th class="py-3.5 px-4 text-center">Status INV</th>
+                                <th class="py-3.5 px-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trips-table-body" class="divide-y divide-slate-100 text-sm">
+                            <!-- Diisi oleh JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- TAB 2: DATABASE CUSTOMER & RUTE (MASTER DATA)             -->
+        <!-- ========================================================= -->
+        <section id="section-customers" class="hidden space-y-6">
+
+            <!-- Form Input Master Database -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div>
+                        <h2 id="customer-form-title" class="text-base font-bold text-slate-900">Tambah Database Customer & Rute</h2>
+                        <p class="text-xs text-slate-500">Data yang tersimpan di sini otomatis muncul pada pilihan input pengangkutan.</p>
+                    </div>
+                    <span id="customer-edit-badge" class="hidden inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                        Mode Edit Master Data
+                    </span>
+                </div>
+
+                <form id="customer-form" onsubmit="handleCustomerSubmit(event)" class="p-6 space-y-4">
+                    <input type="hidden" id="cust-id">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Nama Customer -->
+                        <div>
+                            <label for="cust-name" class="block text-xs font-semibold text-slate-700 mb-1.5">Nama Customer <span class="text-rose-500">*</span></label>
+                            <input type="text" id="cust-name" placeholder="Contoh: PT. Maju Bersama Logistik" required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <!-- Tempat Angkut -->
+                        <div>
+                            <label for="cust-pickup" class="block text-xs font-semibold text-slate-700 mb-1.5">Tempat Angkut / Pabrik / Gudang <span class="text-rose-500">*</span></label>
+                            <input type="text" id="cust-pickup" placeholder="Contoh: Pabrik Cikarang Plant 2" required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <!-- Area -->
+                        <div>
+                            <label for="cust-area" class="block text-xs font-semibold text-slate-700 mb-1.5">Area <span class="text-rose-500">*</span></label>
+                            <input type="text" id="cust-area" placeholder="Contoh: Cikarang / Jababeka" required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <!-- Alamat Lengkap -->
+                    <div>
+                        <label for="cust-address" class="block text-xs font-semibold text-slate-700 mb-1.5">Alamat Lengkap <span class="text-rose-500">*</span></label>
+                        <input type="text" id="cust-address" placeholder="Jl. Industri Raya Blok C No. 12, Kawasan Industri..." required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <!-- Harga Angkut -->
+                        <div>
+                            <label for="cust-price" class="block text-xs font-semibold text-slate-700 mb-1.5">Harga Angkut (Rp) <span class="text-rose-500">*</span></label>
+                            <input type="number" id="cust-price" min="0" step="1000" placeholder="1500000" required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <!-- Uang Jalan -->
+                        <div>
+                            <label for="cust-allowance" class="block text-xs font-semibold text-slate-700 mb-1.5">Uang Jalan (Rp) <span class="text-rose-500">*</span></label>
+                            <input type="number" id="cust-allowance" min="0" step="1000" placeholder="450000" required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <!-- Jarak (KM) -->
+                        <div>
+                            <label for="cust-distance" class="block text-xs font-semibold text-slate-700 mb-1.5">Jarak (KM) <span class="text-rose-500">*</span></label>
+                            <input type="number" id="cust-distance" min="0" step="0.1" placeholder="45" required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <!-- Hari Kerja -->
+                        <div>
+                            <label for="cust-days" class="block text-xs font-semibold text-slate-700 mb-1.5">Hari Kerja <span class="text-rose-500">*</span></label>
+                            <input type="text" id="cust-days" placeholder="Senin - Sabtu" required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+
+                        <!-- Jam Kerja -->
+                        <div>
+                            <label for="cust-hours" class="block text-xs font-semibold text-slate-700 mb-1.5">Jam Kerja <span class="text-rose-500">*</span></label>
+                            <input type="text" id="cust-hours" placeholder="08:00 - 17:00" required class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-slate-100">
+                        <button type="button" id="customer-cancel-btn" onclick="resetCustomerForm()" class="hidden px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+                            Batal Edit
+                        </button>
+                        <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span id="customer-submit-text">Simpan ke Database</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabel Master Database Customer & Rute -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Daftar Database Customer & Rute</h3>
+                        <p class="text-xs text-slate-500">Kelola tarif harga angkut, uang jalan, jarak tempuh, dan jam operasional.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="relative w-full sm:w-64">
+                            <input type="text" id="filter-customer-search" oninput="renderCustomersTable()" placeholder="Cari customer, tempat, area..." class="w-full rounded-xl border border-slate-300 pl-9 pr-3.5 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 absolute left-3 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <button onclick="exportCustomersCSV()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition">
+                            Export DB CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                <th class="py-3.5 px-4">Customer & Tempat Angkut</th>
+                                <th class="py-3.5 px-4">Area & Alamat</th>
+                                <th class="py-3.5 px-4 text-right">Harga Angkut</th>
+                                <th class="py-3.5 px-4 text-right">Uang Jalan</th>
+                                <th class="py-3.5 px-4 text-center">Jarak</th>
+                                <th class="py-3.5 px-4">Hari & Jam Kerja</th>
+                                <th class="py-3.5 px-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customers-table-body" class="divide-y divide-slate-100 text-sm">
+                            <!-- Diisi oleh JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+            <p>LogiTrack ID &mdash; Data tersimpan otomatis di browser perangkat Anda (LocalStorage).</p>
+            <p>Siap di-hosting di GitHub Pages sebagai <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 font-mono">index.html</code></p>
+        </div>
+    </footer>
+
+    <!-- Modal Konfirmasi Hapus / Reset (Pengganti confirm() bawaan browser) -->
+    <div id="confirm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4">
+            <div class="flex items-start gap-3">
+                <div class="bg-rose-100 text-rose-600 p-2.5 rounded-xl shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 id="modal-title" class="text-base font-bold text-slate-900">Konfirmasi Tindakan</h3>
+                    <p id="modal-message" class="text-sm text-slate-600 mt-1">Apakah Anda yakin ingin melanjutkan?</p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeConfirmModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+                    Batal
+                </button>
+                <button id="modal-confirm-btn" class="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 transition">
+                    Ya, Lanjutkan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifikasi Toast -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <script>
+        // =========================================================================
+        // 1. KONFIGURASI & DATA AWAL (DUMMY DATA REALISTIS)
+        // =========================================================================
+        const STORAGE_KEYS = {
+            CUSTOMERS: 'logitrack_customers_v1',
+            TRIPS: 'logitrack_trips_v1'
+        };
+
+        const DEFAULT_CUSTOMERS = [
+            {
+                id: 'cust-101',
+                customerName: 'PT. Astra Otoparts Tbk',
+                pickupPlace: 'Gudang Pusat Sunter',
+                address: 'Jl. Pegangsaan Dua Km. 2,2 Kelapa Gading, Jakarta Utara',
+                area: 'Jakarta Utara',
+                price: 1350000,
+                allowance: 350000,
+                distance: 32,
+                workDays: 'Senin - Jumat',
+                workHours: '08:00 - 17:00'
+            },
+            {
+                id: 'cust-102',
+                customerName: 'PT. Indofood CBP Sukses Makmur',
+                pickupPlace: 'Pabrik Cikarang Barat (MM2100)',
+                address: 'Kawasan Industri MM2100 Blok C-1, Cikarang Barat, Bekasi',
+                area: 'Cikarang / Bekasi',
+                price: 1850000,
+                allowance: 500000,
+                distance: 54,
+                workDays: 'Senin - Sabtu',
+                workHours: '07:30 - 16:30'
+            },
+            {
+                id: 'cust-103',
+                customerName: 'PT. Unilever Indonesia Tbk',
+                pickupPlace: 'Distribution Center Jababeka',
+                address: 'Jl. Jababeka IX Blok D No. 1-29, Cikarang Utara, Bekasi',
+                area: 'Jababeka',
+                price: 2100000,
+                allowance: 550000,
+                distance: 62,
+                workDays: 'Senin - Sabtu',
+                workHours: '08:00 - 18:00'
+            }
+        ];
+
+        function getTodayISO() {
+            const now = new Date();
+            const offset = now.getTimezoneOffset() * 60000;
+            return new Date(now - offset).toISOString().split('T')[0];
+        }
+
+        const DEFAULT_TRIPS = [
+            {
+                id: 'trip-201',
+                date: getTodayISO(),
+                plateNumber: 'B 9412 KXU',
+                driverName: 'Slamet Riyadi',
+                customerId: 'cust-102',
+                sjNumber: 'SJ-2026-0841',
+                sjStatus: 'Kembali / Lengkap',
+                poStatus: 'Sudah Ada PO',
+                invStatus: 'Belum Dibuat INV'
+            },
+            {
+                id: 'trip-202',
+                date: getTodayISO(),
+                plateNumber: 'B 9087 TYA',
+                driverName: 'Dedi Kurniawan',
+                customerId: 'cust-101',
+                sjNumber: 'SJ-2026-0842',
+                sjStatus: 'Belum Kembali',
+                poStatus: 'Belum Ada PO',
+                invStatus: 'Belum Dibuat INV'
+            },
+            {
+                id: 'trip-203',
+                date: getTodayISO(),
+                plateNumber: 'B 9721 FCL',
+                driverName: 'Hendra Saputra',
+                customerId: 'cust-103',
+                sjNumber: 'SJ-2026-0839',
+                sjStatus: 'Kembali / Lengkap',
+                poStatus: 'Sudah Ada PO',
+                invStatus: 'Sudah Dibuat INV'
+            }
+        ];
+
+        // State Aplikasi
+        let customers = [];
+        let trips = [];
+        let pendingModalAction = null;
+
+        // =========================================================================
+        // 2. INISIALISASI & LOCALSTORAGE
+        // =========================================================================
+        function initApp() {
+            try {
+                const savedCustomers = localStorage.getItem(STORAGE_KEYS.CUSTOMERS);
+                const savedTrips = localStorage.getItem(STORAGE_KEYS.TRIPS);
+
+                if (savedCustomers) {
+                    customers = JSON.parse(savedCustomers);
+                } else {
+                    customers = [...DEFAULT_CUSTOMERS];
+                    saveCustomers();
+                }
+
+                if (savedTrips) {
+                    trips = JSON.parse(savedTrips);
+                } else {
+                    trips = [...DEFAULT_TRIPS];
+                    saveTrips();
+                }
+            } catch (error) {
+                console.error('Gagal memuat data dari localStorage:', error);
+                customers = [...DEFAULT_CUSTOMERS];
+                trips = [...DEFAULT_TRIPS];
+            }
+
+            // Set default tanggal hari ini pada form
+            document.getElementById('trip-date').value = getTodayISO();
+
+            // Render seluruh tampilan
+            populateCustomerDropdown();
+            renderCustomersTable();
+            renderTripsTable();
+            updateKPICards();
+            updateTabBadges();
+        }
+
+        function saveCustomers() {
+            localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify(customers));
+            populateCustomerDropdown();
+            updateTabBadges();
+        }
+
+        function saveTrips() {
+            localStorage.setItem(STORAGE_KEYS.TRIPS, JSON.stringify(trips));
+            updateKPICards();
+            updateTabBadges();
+        }
+
+        // =========================================================================
+        // 3. HELPER FORMATTER & UI
+        // =========================================================================
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(angka || 0);
+        }
+
+        function formatTanggalID(isoDate) {
+            if (!isoDate) return '-';
+            const [year, month, day] = isoDate.split('-');
+            const bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return `${day} ${bulan[parseInt(month, 10) - 1] || month} ${year}`;
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-slate-900 border-emerald-500' :
+                            type === 'warning' ? 'bg-slate-900 border-amber-500' :
+                            'bg-slate-900 border-rose-500';
+            const iconColor = type === 'success' ? 'text-emerald-400' :
+                              type === 'warning' ? 'text-amber-400' :
+                              'text-rose-400';
+
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl text-white text-sm shadow-lg border-l-4 ${bgColor} transition-all duration-300 transform translate-y-2 opacity-0`;
+            toast.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ${iconColor} shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="font-medium">${message}</span>
+            `;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function switchTab(tabName) {
+            const sectionTrips = document.getElementById('section-trips');
+            const sectionCustomers = document.getElementById('section-customers');
+            const btnTrips = document.getElementById('tab-btn-trips');
+            const btnCustomers = document.getElementById('tab-btn-customers');
+
+            if (tabName === 'trips') {
+                sectionTrips.classList.remove('hidden');
+                sectionCustomers.classList.add('hidden');
+                btnTrips.className = 'tab-btn py-3.5 px-4 text-sm font-semibold border-b-2 border-blue-500 text-white whitespace-nowrap flex items-center gap-2 transition';
+                btnCustomers.className = 'tab-btn py-3.5 px-4 text-sm font-medium border-b-2 border-transparent text-slate-300 hover:text-white whitespace-nowrap flex items-center gap-2 transition';
+            } else {
+                sectionTrips.classList.add('hidden');
+                sectionCustomers.classList.remove('hidden');
+                btnCustomers.className = 'tab-btn py-3.5 px-4 text-sm font-semibold border-b-2 border-emerald-400 text-white whitespace-nowrap flex items-center gap-2 transition';
+                btnTrips.className = 'tab-btn py-3.5 px-4 text-sm font-medium border-b-2 border-transparent text-slate-300 hover:text-white whitespace-nowrap flex items-center gap-2 transition';
+            }
+        }
+
+        function updateTabBadges() {
+            document.getElementById('badge-trips-count').textContent = trips.length;
+            document.getElementById('badge-customers-count').textContent = customers.length;
+        }
+
+        // =========================================================================
+        // 4. LOGIKA TAB 1: TRANSAKSI PENGANGKUTAN
+        // =========================================================================
+        function populateCustomerDropdown() {
+            const select = document.getElementById('trip-customer-select');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">-- Pilih Tempat Angkut / Customer --</option>';
+
+            customers.forEach(cust => {
+                const option = document.createElement('option');
+                option.value = cust.id;
+                option.textContent = `${cust.pickupPlace} — ${cust.customerName} (${cust.area})`;
+                select.appendChild(option);
+            });
+
+            if (currentVal && customers.some(c => c.id === currentVal)) {
+                select.value = currentVal;
+            }
+            updateTripCustomerPreview();
+        }
+
+        function updateTripCustomerPreview() {
+            const selectedId = document.getElementById('trip-customer-select').value;
+            const previewBox = document.getElementById('trip-master-preview');
+            const cust = customers.find(c => c.id === selectedId);
+
+            if (!cust) {
+                previewBox.classList.add('hidden');
+                return;
+            }
+
+            previewBox.classList.remove('hidden');
+            document.getElementById('preview-area').textContent = cust.area;
+            document.getElementById('preview-distance').textContent = `${cust.distance} KM`;
+            document.getElementById('preview-price').textContent = formatRupiah(cust.price);
+            document.getElementById('preview-allowance').textContent = formatRupiah(cust.allowance);
+            document.getElementById('preview-schedule').textContent = `Operasional: ${cust.workDays} (${cust.workHours})`;
+            document.getElementById('preview-address').textContent = `Alamat: ${cust.address}`;
+        }
+
+        function handleTripSubmit(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('trip-id').value;
+            const date = document.getElementById('trip-date').value;
+            const plateNumber = document.getElementById('trip-plate').value.trim().toUpperCase();
+            const driverName = document.getElementById('trip-driver').value.trim();
+            const customerId = document.getElementById('trip-customer-select').value;
+            const sjNumber = document.getElementById('trip-sj-number').value.trim().toUpperCase();
+            const sjStatus = document.getElementById('trip-sj-status').value;
+            const poStatus = document.getElementById('trip-po-status').value;
+            const invStatus = document.getElementById('trip-inv-status').value;
+
+            if (!customerId) {
+                showToast('Silakan pilih Tempat Angkut / Customer terlebih dahulu.', 'warning');
+                return;
+            }
+
+            if (id) {
+                // Mode Edit
+                const index = trips.findIndex(t => t.id === id);
+                if (index !== -1) {
+                    trips[index] = {
+                        ...trips[index],
+                        date, plateNumber, driverName, customerId, sjNumber, sjStatus, poStatus, invStatus
+                    };
+                    showToast('Data pengangkutan berhasil diperbarui!');
+                }
+            } else {
+                // Mode Tambah Baru
+                const newTrip = {
+                    id: 'trip-' + Date.now(),
+                    date,
+                    plateNumber,
+                    driverName,
+                    customerId,
+                    sjNumber,
+                    sjStatus,
+                    poStatus,
+                    invStatus
+                };
+                trips.unshift(newTrip);
+                showToast('Data pengangkutan baru berhasil disimpan!');
+            }
+
+            saveTrips();
+            resetTripForm();
+            renderTripsTable();
+        }
+
+        function editTrip(id) {
+            const trip = trips.find(t => t.id === id);
+            if (!trip) return;
+
+            document.getElementById('trip-id').value = trip.id;
+            document.getElementById('trip-date').value = trip.date;
+            document.getElementById('trip-plate').value = trip.plateNumber;
+            document.getElementById('trip-driver').value = trip.driverName;
+            document.getElementById('trip-customer-select').value = trip.customerId;
+            document.getElementById('trip-sj-number').value = trip.sjNumber;
+            document.getElementById('trip-sj-status').value = trip.sjStatus;
+            document.getElementById('trip-po-status').value = trip.poStatus;
+            document.getElementById('trip-inv-status').value = trip.invStatus;
+
+            updateTripCustomerPreview();
+
+            document.getElementById('trip-form-title').textContent = 'Edit Data Pengangkutan';
+            document.getElementById('trip-submit-text').textContent = 'Simpan Perubahan';
+            document.getElementById('trip-edit-badge').classList.remove('hidden');
+            document.getElementById('trip-cancel-btn').classList.remove('hidden');
+
+            document.getElementById('trip-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetTripForm() {
+            document.getElementById('trip-form').reset();
+            document.getElementById('trip-id').value = '';
+            document.getElementById('trip-date').value = getTodayISO();
+            document.getElementById('trip-master-preview').classList.add('hidden');
+
+            document.getElementById('trip-form-title').textContent = 'Catat Pengangkutan Baru';
+            document.getElementById('trip-submit-text').textContent = 'Simpan Data Pengangkutan';
+            document.getElementById('trip-edit-badge').classList.add('hidden');
+            document.getElementById('trip-cancel-btn').classList.add('hidden');
+        }
+
+        function deleteTrip(id) {
+            openConfirmModal(
+                'Hapus Data Pengangkutan',
+                'Data transaksi pengangkutan ini akan dihapus secara permanen. Lanjutkan?',
+                () => {
+                    trips = trips.filter(t => t.id !== id);
+                    saveTrips();
+                    renderTripsTable();
+                    showToast('Data pengangkutan telah dihapus.', 'error');
+                }
+            );
+        }
+
+        // Ubah Status Cepat (1-Klik pada Badge di Tabel)
+        function cycleTripStatus(id, field) {
+            const trip = trips.find(t => t.id === id);
+            if (!trip) return;
+
+            if (field === 'sjStatus') {
+                const order = ['Belum Kembali', 'Kembali / Lengkap', 'Revisi / Pending'];
+                const nextIdx = (order.indexOf(trip.sjStatus) + 1) % order.length;
+                trip.sjStatus = order[nextIdx];
+            } else if (field === 'poStatus') {
+                trip.poStatus = trip.poStatus === 'Belum Ada PO' ? 'Sudah Ada PO' : 'Belum Ada PO';
+            } else if (field === 'invStatus') {
+                trip.invStatus = trip.invStatus === 'Belum Dibuat INV' ? 'Sudah Dibuat INV' : 'Belum Dibuat INV';
+            }
+
+            saveTrips();
+            renderTripsTable();
+            showToast('Status berhasil diperbarui!');
+        }
+
+        function getSJBadgeHTML(id, status) {
+            let classes = 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200';
+            if (status === 'Kembali / Lengkap') {
+                classes = 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200';
+            } else if (status === 'Revisi / Pending') {
+                classes = 'bg-rose-100 text-rose-800 border-rose-200 hover:bg-rose-200';
+            }
+            return `<button onclick="cycleTripStatus('${id}', 'sjStatus')" title="Klik untuk ganti status Surat Jalan" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border transition cursor-pointer ${classes}">${status}</button>`;
+        }
+
+        function getPOBadgeHTML(id, status) {
+            const isDone = status === 'Sudah Ada PO';
+            const classes = isDone
+                ? 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200'
+                : 'bg-rose-100 text-rose-800 border-rose-200 hover:bg-rose-200';
+            return `<button onclick="cycleTripStatus('${id}', 'poStatus')" title="Klik untuk ganti status PO" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border transition cursor-pointer ${classes}">${status}</button>`;
+        }
+
+        function getINVBadgeHTML(id, status) {
+            const isDone = status === 'Sudah Dibuat INV';
+            const classes = isDone
+                ? 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200'
+                : 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200';
+            return `<button onclick="cycleTripStatus('${id}', 'invStatus')" title="Klik untuk ganti status Invoice" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border transition cursor-pointer ${classes}">${status}</button>`;
+        }
+
+        function renderTripsTable() {
+            const tbody = document.getElementById('trips-table-body');
+            const search = document.getElementById('filter-trip-search').value.toLowerCase().trim();
+            const filterSJ = document.getElementById('filter-trip-sj').value;
+            const filterPO = document.getElementById('filter-trip-po').value;
+            const filterINV = document.getElementById('filter-trip-inv').value;
+
+            const filtered = trips.filter(trip => {
+                const cust = customers.find(c => c.id === trip.customerId) || {};
+                const matchSearch = !search ||
+                    trip.plateNumber.toLowerCase().includes(search) ||
+                    trip.driverName.toLowerCase().includes(search) ||
+                    trip.sjNumber.toLowerCase().includes(search) ||
+                    (cust.customerName && cust.customerName.toLowerCase().includes(search)) ||
+                    (cust.pickupPlace && cust.pickupPlace.toLowerCase().includes(search)) ||
+                    (cust.area && cust.area.toLowerCase().includes(search));
+
+                const matchSJ = !filterSJ || trip.sjStatus === filterSJ;
+                const matchPO = !filterPO || trip.poStatus === filterPO;
+                const matchINV = !filterINV || trip.invStatus === filterINV;
+
+                return matchSearch && matchSJ && matchPO && matchINV;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="py-10 px-4 text-center text-slate-400">
+                            <p class="font-medium text-slate-600">Tidak ada data pengangkutan yang ditemukan.</p>
+                            <p class="text-xs mt-1">Silakan tambah pencatatan baru pada form di atas atau ubah filter pencarian.</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(trip => {
+                const cust = customers.find(c => c.id === trip.customerId);
+                const customerName = cust ? cust.customerName : '<span class="text-rose-500 italic">Customer Terhapus</span>';
+                const pickupPlace = cust ? cust.pickupPlace : '-';
+                const area = cust ? cust.area : '-';
+                const price = cust ? cust.price : 0;
+                const allowance = cust ? cust.allowance : 0;
+
+                return `
+                    <tr class="hover:bg-slate-50/90 transition">
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                            <div class="font-bold text-slate-900">${trip.sjNumber}</div>
+                            <div class="text-xs text-slate-500">${formatTanggalID(trip.date)}</div>
+                        </td>
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                            <span class="inline-block bg-slate-800 text-white text-xs font-mono font-semibold px-2 py-0.5 rounded">${trip.plateNumber}</span>
+                            <div class="text-xs text-slate-700 font-medium mt-1">${trip.driverName}</div>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <div class="font-semibold text-slate-900">${pickupPlace}</div>
+                            <div class="text-xs text-slate-600">${customerName}</div>
+                            <span class="inline-block mt-1 text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium">Area: ${area}</span>
+                        </td>
+                        <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                            <div class="font-bold text-emerald-700">${formatRupiah(price)}</div>
+                            <div class="text-xs text-slate-500">UJ: ${formatRupiah(allowance)}</div>
+                        </td>
+                        <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                            ${getSJBadgeHTML(trip.id, trip.sjStatus)}
+                        </td>
+                        <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                            ${getPOBadgeHTML(trip.id, trip.poStatus)}
+                        </td>
+                        <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                            ${getINVBadgeHTML(trip.id, trip.invStatus)}
+                        </td>
+                        <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                            <div class="inline-flex items-center gap-1.5">
+                                <button onclick="editTrip('${trip.id}')" title="Edit Data" class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </button>
+                                <button onclick="deleteTrip('${trip.id}')" title="Hapus Data" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateKPICards() {
+            let totalRevenue = 0;
+            let totalAllowance = 0;
+            let pendingINVCount = 0;
+
+            trips.forEach(trip => {
+                const cust = customers.find(c => c.id === trip.customerId);
+                if (cust) {
+                    totalRevenue += Number(cust.price) || 0;
+                    totalAllowance += Number(cust.allowance) || 0;
+                }
+                if (trip.invStatus === 'Belum Dibuat INV') {
+                    pendingINVCount++;
+                }
+            });
+
+            document.getElementById('kpi-total-trips').textContent = `${trips.length} Rit`;
+            document.getElementById('kpi-total-revenue').textContent = formatRupiah(totalRevenue);
+            document.getElementById('kpi-total-allowance').textContent = formatRupiah(totalAllowance);
+            document.getElementById('kpi-pending-inv').textContent = `${pendingINVCount} Rit`;
+        }
+
+        // =========================================================================
+        // 5. LOGIKA TAB 2: DATABASE CUSTOMER & RUTE
+        // =========================================================================
+        function handleCustomerSubmit(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('cust-id').value;
+            const customerName = document.getElementById('cust-name').value.trim();
+            const pickupPlace = document.getElementById('cust-pickup').value.trim();
+            const area = document.getElementById('cust-area').value.trim();
+            const address = document.getElementById('cust-address').value.trim();
+            const price = parseFloat(document.getElementById('cust-price').value) || 0;
+            const allowance = parseFloat(document.getElementById('cust-allowance').value) || 0;
+            const distance = parseFloat(document.getElementById('cust-distance').value) || 0;
+            const workDays = document.getElementById('cust-days').value.trim();
+            const workHours = document.getElementById('cust-hours').value.trim();
+
+            if (id) {
+                const index = customers.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    customers[index] = {
+                        id, customerName, pickupPlace, area, address, price, allowance, distance, workDays, workHours
+                    };
+                    showToast('Database customer & rute berhasil diperbarui!');
+                }
+            } else {
+                const newCust = {
+                    id: 'cust-' + Date.now(),
+                    customerName,
+                    pickupPlace,
+                    area,
+                    address,
+                    price,
+                    allowance,
+                    distance,
+                    workDays,
+                    workHours
+                };
+                customers.unshift(newCust);
+                showToast('Customer & rute baru ditambahkan ke database!');
+            }
+
+            saveCustomers();
+            resetCustomerForm();
+            renderCustomersTable();
+            renderTripsTable();
+            updateKPICards();
+        }
+
+        function editCustomer(id) {
+            const cust = customers.find(c => c.id === id);
+            if (!cust) return;
+
+            document.getElementById('cust-id').value = cust.id;
+            document.getElementById('cust-name').value = cust.customerName;
+            document.getElementById('cust-pickup').value = cust.pickupPlace;
+            document.getElementById('cust-area').value = cust.area;
+            document.getElementById('cust-address').value = cust.address;
+            document.getElementById('cust-price').value = cust.price;
+            document.getElementById('cust-allowance').value = cust.allowance;
+            document.getElementById('cust-distance').value = cust.distance;
+            document.getElementById('cust-days').value = cust.workDays;
+            document.getElementById('cust-hours').value = cust.workHours;
+
+            document.getElementById('customer-form-title').textContent = 'Edit Database Customer & Rute';
+            document.getElementById('customer-submit-text').textContent = 'Simpan Perubahan Database';
+            document.getElementById('customer-edit-badge').classList.remove('hidden');
+            document.getElementById('customer-cancel-btn').classList.remove('hidden');
+
+            document.getElementById('customer-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function resetCustomerForm() {
+            document.getElementById('customer-form').reset();
+            document.getElementById('cust-id').value = '';
+
+            document.getElementById('customer-form-title').textContent = 'Tambah Database Customer & Rute';
+            document.getElementById('customer-submit-text').textContent = 'Simpan ke Database';
+            document.getElementById('customer-edit-badge').classList.add('hidden');
+            document.getElementById('customer-cancel-btn').classList.add('hidden');
+        }
+
+        function deleteCustomer(id) {
+            openConfirmModal(
+                'Hapus Data Customer & Rute',
+                'Menghapus master data ini akan memengaruhi tampilan tarif pada riwayat transaksi yang terhubung. Yakin ingin menghapus?',
+                () => {
+                    customers = customers.filter(c => c.id !== id);
+                    saveCustomers();
+                    renderCustomersTable();
+                    renderTripsTable();
+                    updateKPICards();
+                    showToast('Data customer dihapus dari database.', 'error');
+                }
+            );
+        }
+
+        function renderCustomersTable() {
+            const tbody = document.getElementById('customers-table-body');
+            const search = document.getElementById('filter-customer-search').value.toLowerCase().trim();
+
+            const filtered = customers.filter(c => {
+                return !search ||
+                    c.customerName.toLowerCase().includes(search) ||
+                    c.pickupPlace.toLowerCase().includes(search) ||
+                    c.area.toLowerCase().includes(search) ||
+                    c.address.toLowerCase().includes(search);
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-10 px-4 text-center text-slate-400">
+                            <p class="font-medium text-slate-600">Tidak ada data customer & rute yang cocok.</p>
+                            <p class="text-xs mt-1">Tambahkan data baru melalui formulir di atas.</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(c => `
+                <tr class="hover:bg-slate-50/90 transition">
+                    <td class="py-3.5 px-4">
+                        <div class="font-bold text-slate-900">${c.customerName}</div>
+                        <div class="text-xs font-medium text-blue-700 mt-0.5">${c.pickupPlace}</div>
+                    </td>
+                    <td class="py-3.5 px-4 max-w-xs">
+                        <span class="inline-block bg-slate-100 text-slate-700 text-xs font-semibold px-2 py-0.5 rounded mb-1">${c.area}</span>
+                        <p class="text-xs text-slate-600 line-clamp-2">${c.address}</p>
+                    </td>
+                    <td class="py-3.5 px-4 text-right whitespace-nowrap font-bold text-emerald-700">
+                        ${formatRupiah(c.price)}
+                    </td>
+                    <td class="py-3.5 px-4 text-right whitespace-nowrap font-semibold text-slate-800">
+                        ${formatRupiah(c.allowance)}
+                    </td>
+                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
+                            ${c.distance} KM
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-4 whitespace-nowrap text-xs">
+                        <div class="font-semibold text-slate-800">${c.workDays}</div>
+                        <div class="text-slate-500 mt-0.5">${c.workHours}</div>
+                    </td>
+                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                        <div class="inline-flex items-center gap-1.5">
+                            <button onclick="editCustomer('${c.id}')" title="Edit Database" class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                            <button onclick="deleteCustomer('${c.id}')" title="Hapus Database" class="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // =========================================================================
+        // 6. EKSPOR CSV / EXCEL & UNDUH FILE HTML UNTUK GITHUB
+        // =========================================================================
+        function downloadCSVFile(csvContent, filename) {
+            // Tambahkan BOM UTF-8 agar karakter & pemisah terbaca rapi di Microsoft Excel
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportTripsCSV() {
+            if (trips.length === 0) {
+                showToast('Belum ada data pengangkutan untuk diekspor.', 'warning');
+                return;
+            }
+
+            const headers = [
+                'Tanggal Angkut',
+                'No. Surat Jalan',
+                'No. Mobil',
+                'Nama Sopir',
+                'Nama Customer',
+                'Tempat Angkut',
+                'Area',
+                'Jarak (KM)',
+                'Harga Angkut (Rp)',
+                'Uang Jalan (Rp)',
+                'Status Surat Jalan',
+                'Status PO',
+                'Status Invoice (INV)'
+            ];
+
+            const rows = trips.map(t => {
+                const c = customers.find(item => item.id === t.customerId) || {};
+                return [
+                    t.date,
+                    t.sjNumber,
+                    t.plateNumber,
+                    t.driverName,
+                    c.customerName || '-',
+                    c.pickupPlace || '-',
+                    c.area || '-',
+                    c.distance || 0,
+                    c.price || 0,
+                    c.allowance || 0,
+                    t.sjStatus,
+                    t.poStatus,
+                    t.invStatus
+                ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(',');
+            });
+
+            const csvString = [headers.join(','), ...rows].join('\n');
+            downloadCSVFile(csvString, `Laporan_Pengangkutan_${getTodayISO()}.csv`);
+            showToast('File CSV Laporan Pengangkutan berhasil diunduh!');
+        }
+
+        function exportCustomersCSV() {
+            if (customers.length === 0) {
+                showToast('Belum ada database customer untuk diekspor.', 'warning');
+                return;
+            }
+
+            const headers = [
+                'Nama Customer',
+                'Tempat Angkut',
+                'Alamat',
+                'Area',
+                'Harga Angkut (Rp)',
+                'Uang Jalan (Rp)',
+                'Jarak (KM)',
+                'Hari Kerja',
+                'Jam Kerja'
+            ];
+
+            const rows = customers.map(c => [
+                c.customerName,
+                c.pickupPlace,
+                c.address,
+                c.area,
+                c.price,
+                c.allowance,
+                c.distance,
+                c.workDays,
+                c.workHours
+            ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(','));
+
+            const csvString = [headers.join(','), ...rows].join('\n');
+            downloadCSVFile(csvString, `Database_Customer_Rute_${getTodayISO()}.csv`);
+            showToast('File CSV Database Customer berhasil diunduh!');
+        }
+
+        function downloadSourceHTML() {
+            // Mengambil seluruh dokumen HTML saat ini dalam keadaan bersih untuk diunggah ke GitHub
+            const cloneDoc = document.documentElement.cloneNode(true);
+            // Bersihkan toast yang sedang tampil agar file hasil unduhan bersih
+            const toastContainer = cloneDoc.querySelector('#toast-container');
+            if (toastContainer) toastContainer.innerHTML = '';
+
+            const fullHTML = '<!DOCTYPE html>\n' + cloneDoc.outerHTML;
+            const blob = new Blob([fullHTML], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'index.html');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showToast('File index.html berhasil diunduh! Siap di-upload ke GitHub.');
+        }
+
+        // =========================================================================
+        // 7. MODAL KONFIRMASI & RESET DATA CONTOH
+        // =========================================================================
+        function openConfirmModal(title, message, onConfirm) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            pendingModalAction = onConfirm;
+
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            pendingModalAction = null;
+        }
+
+        document.getElementById('modal-confirm-btn').addEventListener('click', () => {
+            if (typeof pendingModalAction === 'function') {
+                pendingModalAction();
+            }
+            closeConfirmModal();
+        });
+
+        function openResetModal() {
+            openConfirmModal(
+                'Reset ke Data Contoh Awal',
+                'Semua data yang Anda ubah di browser ini akan dikembalikan ke 3 contoh data awal. Lanjutkan?',
+                () => {
+                    customers = [...DEFAULT_CUSTOMERS];
+                    trips = [...DEFAULT_TRIPS];
+                    saveCustomers();
+                    saveTrips();
+                    renderCustomersTable();
+                    renderTripsTable();
+                    resetTripForm();
+                    resetCustomerForm();
+                    showToast('Data berhasil dikembalikan ke contoh awal.');
+                }
+            );
+        }
+
+        // Jalankan aplikasi saat halaman selesai dimuat
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
